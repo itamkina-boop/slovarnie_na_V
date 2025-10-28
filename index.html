@@ -150,18 +150,6 @@
     .fly:hover {
       transform: scale(1.1);
     }
-    .fly.hint {
-      animation: hintBlink 1s ease-in-out infinite;
-    }
-    @keyframes hintBlink {
-      0%, 100% { 
-        filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,0,0.5)); 
-      }
-      50% { 
-        filter: brightness(1.5) drop-shadow(0 0 15px yellow); 
-        transform: scale(1.15);
-      }
-    }
     .highlighted_letter {
       color: red !important;
       text-shadow:
@@ -568,14 +556,12 @@
   let paused = false;
   let flies = [];
   let lastActionTime = Date.now();
-  let hintTimeout = null;
   let completedWords = new Set();
   let failedWords = new Set();
   let currentLevelWords = [];
   let flySpawnInterval = null;
 
   const MAX_CONCURRENT_FLIES = 5;
-  const HINT_DELAY = 8000;
   const BASE_FLY_SPEED = 1.5;
   const LEVEL_SPEED_MULTIPLIER = 1.3;
   const CORRECT_FLY_RATIO = 0.6;
@@ -793,10 +779,6 @@
       }
     }
     flies = [];
-    if (hintTimeout) {
-      clearTimeout(hintTimeout);
-      hintTimeout = null;
-    }
     if (flySpawnInterval) {
       clearInterval(flySpawnInterval);
       flySpawnInterval = null;
@@ -832,7 +814,6 @@
     }, FLY_SPAWN_INTERVAL / getCurrentFlySpeed());
     
     lastActionTime = Date.now();
-    startHintTimer();
   }
 
   function createFly(letter, isCorrect) {
@@ -869,7 +850,6 @@
       if(paused) return;
       
       lastActionTime = Date.now();
-      resetHint();
       
       if(fly.dataset.correct === '1') {
         onCorrectLetter(letter);
@@ -897,40 +877,6 @@
       letter: letter,
       isCorrect: isCorrect
     });
-  }
-
-  function startHintTimer() {
-    if (hintTimeout) clearTimeout(hintTimeout);
-    hintTimeout = setTimeout(showHint, HINT_DELAY);
-  }
-
-  function resetHint() {
-    if (hintTimeout) {
-      clearTimeout(hintTimeout);
-      hintTimeout = null;
-    }
-    flies.forEach(fly => {
-      fly.element.classList.remove('hint');
-    });
-  }
-
-  function showHint() {
-    const wordObj = getCurrentWord();
-    const nextCorrectIndex = currentInserts.length;
-    if (nextCorrectIndex >= wordObj.correct.length) return;
-    
-    const neededLetter = wordObj.correct[nextCorrectIndex];
-    
-    flies.forEach(fly => {
-      if (fly.letter === neededLetter && fly.isCorrect) {
-        fly.element.classList.add('hint');
-      }
-    });
-    
-    hintTimeout = setTimeout(() => {
-      resetHint();
-      startHintTimer();
-    }, 3000);
   }
 
   function showEncouragement() {
@@ -1157,11 +1103,6 @@
   }
 
   function gameLoop() {
-    if(!paused){
-      if (Date.now() - lastActionTime > HINT_DELAY - 1000 && !hintTimeout) {
-        startHintTimer();
-      }
-    }
     requestAnimationFrame(gameLoop);
   }
 
@@ -1213,4 +1154,3 @@
 
 </body>
 </html>
-```
