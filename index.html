@@ -116,12 +116,12 @@
     }
     .fly {
       position: absolute;
-      width: 120px; /* Увеличил размер */
-      height: 90px; /* Увеличил размер */
+      width: 120px;
+      height: 90px;
       cursor: pointer;
       user-select: none;
       font-weight: bold;
-      font-size: 48px; /* Увеличил шрифт */
+      font-size: 48px;
       color: black;
       text-shadow:
          -2px -2px 0 white,
@@ -135,33 +135,15 @@
       user-select: none;
       z-index: 800;
       transition: transform 0.2s ease;
-      /* Анимация полета птицы */
       animation: birdFly 12s linear forwards;
     }
     
-    /* Новая анимация полета птицы справа налево */
     @keyframes birdFly {
       0% {
         transform: translateX(100vw) translateY(var(--start-y)) rotate(0deg);
       }
       100% {
         transform: translateX(-150px) translateY(var(--end-y)) rotate(0deg);
-      }
-    }
-    
-    /* Анимация взмаха крыльев для птиц */
-    @keyframes birdWingFlap {
-      0%, 100% { 
-        transform: translateX(100vw) translateY(var(--start-y)) scaleY(1) rotate(0deg);
-      }
-      25% { 
-        transform: translateX(75vw) translateY(calc(var(--start-y) - 5px)) scaleY(0.95) rotate(-2deg);
-      }
-      50% { 
-        transform: translateX(50vw) translateY(var(--start-y)) scaleY(1) rotate(0deg);
-      }
-      75% { 
-        transform: translateX(25vw) translateY(calc(var(--start-y) + 5px)) scaleY(0.95) rotate(2deg);
       }
     }
 
@@ -248,7 +230,21 @@
     #dictionary-button {
       background-color: #4CAF50;
     }
-    #controls {
+    
+    /* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ КНОПОК УПРАВЛЕНИЯ */
+    #mobile-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      z-index: 1600;
+      padding: 0 20px;
+    }
+    
+    #desktop-controls {
       position: absolute;
       top: 20px;
       left: 20px;
@@ -256,6 +252,7 @@
       gap: 15px;
       z-index: 1600;
     }
+    
     button {
       font-size: 1.5vw;
       padding: 8px 15px;
@@ -268,7 +265,15 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: all 0.2s ease;
     }
+    
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
     .btn-icon {
       width: 24px;
       height: 24px;
@@ -337,9 +342,10 @@
         font-size: 10vw; 
         letter-spacing: 5px; 
         padding: 8px 15px;
+        top: 10px;
       }
       .fly {
-        width: 140px; /* Увеличил для мобильных */
+        width: 140px;
         height: 105px;
         font-size: 56px;
       }
@@ -351,14 +357,31 @@
         width: 70px;
         height: 70px;
       }
-      button {
+      
+      /* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ МОБИЛЬНЫХ КНОПОК */
+      #mobile-controls button {
         font-size: 4vw;
-        padding: 10px 15px;
+        padding: 12px 20px;
+        min-width: 140px;
+        justify-content: center;
       }
+      
+      #desktop-controls {
+        display: none;
+      }
+      
       .btn-icon {
         width: 30px;
         height: 30px;
       }
+      
+      #hud {
+        top: 10px;
+        right: 10px;
+        padding: 8px;
+        gap: 10px;
+      }
+      
       #encouragement-message {
         font-size: 8vw;
       }
@@ -379,6 +402,12 @@
       .affirmation-message {
         font-size: 6vw;
         top: 25%;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      #mobile-controls {
+        display: none;
       }
     }
   </style>
@@ -402,10 +431,19 @@
       <button id="dictionary-button" class="game-over-button">Посмотреть словарь</button>
     </div>
   </div>
-  <div id="controls">
+  
+  <!-- Кнопки для десктопной версии -->
+  <div id="desktop-controls">
     <button id="btn-pause"><span class="btn-icon"></span>Пауза</button>
     <button id="btn-dict"><span class="btn-icon"></span>Словарь</button>
   </div>
+  
+  <!-- Кнопки для мобильной версии -->
+  <div id="mobile-controls">
+    <button id="btn-pause-mobile"><span class="btn-icon"></span>Пауза</button>
+    <button id="btn-dict-mobile"><span class="btn-icon"></span>Словарь</button>
+  </div>
+  
   <div id="crosshair"></div>
 
   <audio id="sound-correct" preload="auto"></audio>
@@ -428,8 +466,12 @@
   const restartButton = document.getElementById('restart-button');
   const dictionaryButton = document.getElementById('dictionary-button');
   const crosshair = document.getElementById('crosshair');
+  
+  // Элементы управления для обеих версий
   const btnPause = document.getElementById('btn-pause');
   const btnDict = document.getElementById('btn-dict');
+  const btnPauseMobile = document.getElementById('btn-pause-mobile');
+  const btnDictMobile = document.getElementById('btn-dict-mobile');
   
   const soundCorrect = document.getElementById('sound-correct');
   const soundMiss = document.getElementById('sound-miss');
@@ -470,53 +512,53 @@
 
   // Массив слов
   const words = [
-  { word: 'в.кцина', correct: ['а'] },
-  { word: 'в.кцинация', correct: ['а'] },
-  { word: 'в.кцинировать', correct: ['а'] },
-  { word: 'в.риант', correct: ['а'] },
-  { word: 'в.риативный', correct: ['а'] },
-  { word: 'в.лосипед', correct: ['е'] },
-  { word: 'велос.пед', correct: ['и'] },
-  { word: 'в.лосипедный', correct: ['е'] },
-  { word: 'велос.педный', correct: ['и'] },
-  { word: 'в.нтилятор', correct: ['е'] },
-  { word: 'вент.лятор', correct: ['и'] },
-  { word: 'в.нтиляторный', correct: ['е'] },
-  { word: 'вент.ляторный', correct: ['и'] },
-  { word: 'в.рмишель', correct: ['е'] },
-  { word: 'в.стибюль', correct: ['е'] },
-  { word: 'вест.бюль', correct: ['и'] },
-  { word: 'в.т.ран', correct: ['е', 'е'] },
-  { word: 'в.т.ранский', correct: ['е', 'е'] },
-  { word: 'в.негрет', correct: ['и'] },
-  { word: 'вин.грет', correct: ['е'] },
-  { word: 'в.ртуальный', correct: ['и'] },
-  { word: 'в.ртуоз', correct: ['и'] },
-  { word: 'в.ртуозный', correct: ['и'] },
-  { word: 'в.траж', correct: ['и'] },
-  { word: 'в.тражный', correct: ['и'] },
-  { word: 'вл.делец', correct: ['а'] },
-  { word: 'вл.деть', correct: ['а'] },
-  { word: 'в.зражать', correct: ['о'] },
-  { word: 'возр.жать', correct: ['а'] },
-  { word: 'в.зражение', correct: ['о'] },
-  { word: 'возр.жение', correct: ['а'] },
-  { word: 'в.кзал', correct: ['о'] },
-  { word: 'в.кзальный', correct: ['о'] },
-  { word: 'в.лейбол', correct: ['о'] },
-  { word: 'в.лейбольный', correct: ['о'] },
-  { word: 'вообр.жать', correct: ['а'] },
-  { word: 'вообр.жение', correct: ['а'] },
-  { word: 'вопл.тить', correct: ['о'] },
-  { word: 'вопл.щать', correct: ['о'] },
-  { word: 'вопл.щение', correct: ['о'] },
-  { word: 'вп.ч.тлить', correct: ['е', 'а'] },
-  { word: 'вп.ч.тление', correct: ['е', 'а'] },
-  { word: 'выр.зительный', correct: ['а'] },
-  { word: 'выр.зить', correct: ['а'] },
-  { word: 'выр.жать', correct: ['а'] },
-  { word: 'выр.жение', correct: ['а'] }
-];
+    { word: 'в.кцина', correct: ['а'] },
+    { word: 'в.кцинация', correct: ['а'] },
+    { word: 'в.кцинировать', correct: ['а'] },
+    { word: 'в.риант', correct: ['а'] },
+    { word: 'в.риативный', correct: ['а'] },
+    { word: 'в.лосипед', correct: ['е'] },
+    { word: 'велос.пед', correct: ['и'] },
+    { word: 'в.лосипедный', correct: ['е'] },
+    { word: 'велос.педный', correct: ['и'] },
+    { word: 'в.нтилятор', correct: ['е'] },
+    { word: 'вент.лятор', correct: ['и'] },
+    { word: 'в.нтиляторный', correct: ['е'] },
+    { word: 'вент.ляторный', correct: ['и'] },
+    { word: 'в.рмишель', correct: ['е'] },
+    { word: 'в.стибюль', correct: ['е'] },
+    { word: 'вест.бюль', correct: ['и'] },
+    { word: 'в.т.ран', correct: ['е', 'е'] },
+    { word: 'в.т.ранский', correct: ['е', 'е'] },
+    { word: 'в.негрет', correct: ['и'] },
+    { word: 'вин.грет', correct: ['е'] },
+    { word: 'в.ртуальный', correct: ['и'] },
+    { word: 'в.ртуоз', correct: ['и'] },
+    { word: 'в.ртуозный', correct: ['и'] },
+    { word: 'в.траж', correct: ['и'] },
+    { word: 'в.тражный', correct: ['и'] },
+    { word: 'вл.делец', correct: ['а'] },
+    { word: 'вл.деть', correct: ['а'] },
+    { word: 'в.зражать', correct: ['о'] },
+    { word: 'возр.жать', correct: ['а'] },
+    { word: 'в.зражение', correct: ['о'] },
+    { word: 'возр.жение', correct: ['а'] },
+    { word: 'в.кзал', correct: ['о'] },
+    { word: 'в.кзальный', correct: ['о'] },
+    { word: 'в.лейбол', correct: ['о'] },
+    { word: 'в.лейбольный', correct: ['о'] },
+    { word: 'вообр.жать', correct: ['а'] },
+    { word: 'вообр.жение', correct: ['а'] },
+    { word: 'вопл.тить', correct: ['о'] },
+    { word: 'вопл.щать', correct: ['о'] },
+    { word: 'вопл.щение', correct: ['о'] },
+    { word: 'вп.ч.тлить', correct: ['е', 'а'] },
+    { word: 'вп.ч.тление', correct: ['е', 'а'] },
+    { word: 'выр.зительный', correct: ['а'] },
+    { word: 'выр.зить', correct: ['а'] },
+    { word: 'выр.жать', correct: ['а'] },
+    { word: 'выр.жение', correct: ['а'] }
+  ];
 
   let currentWordIndex = 0;
   let currentInserts = [];
@@ -532,13 +574,13 @@
   let currentLevelWords = [];
   let flySpawnInterval = null;
 
-  const MAX_CONCURRENT_FLIES = 5; // Максимум 5 птиц одновременно
+  const MAX_CONCURRENT_FLIES = 5;
   const HINT_DELAY = 8000;
   const BASE_FLY_SPEED = 1.5;
   const LEVEL_SPEED_MULTIPLIER = 1.3;
   const CORRECT_FLY_RATIO = 0.6;
-  const LETTER_OFFSET = 25; // Увеличил смещение для больших птиц
-  const FLY_SPAWN_INTERVAL = 1500; // Уменьшил интервал появления
+  const LETTER_OFFSET = 25;
+  const FLY_SPAWN_INTERVAL = 1500;
 
   function isMobile() {
     return /Mobi|Android/i.test(navigator.userAgent);
@@ -579,16 +621,14 @@
 
   // АНИМАЦИЯ ПЕРЕХОДА НА НОВЫЙ УРОВЕНЬ
   function showLevelUpAnimation() {
-    // Воспроизводим звук
     try { 
       soundLevelUp.currentTime = 0; 
       soundLevelUp.play().catch(e => console.log('Audio error:', e));
     } catch(e) {}
 
-    // Показываем случайную аффирмацию
     showAffirmation();
 
-    // 1. Фейерверк из букв
+    // Фейерверк из букв
     const colors = ['#FF6B00', '#4CAF50', '#2196F3', '#9C27B0', '#FFEB3B'];
     const letters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
     
@@ -624,7 +664,7 @@
       }, i * 60);
     }
 
-    // 2. Конфетти
+    // Конфетти
     for (let i = 0; i < 50; i++) {
       setTimeout(() => {
         const confetti = document.createElement('div');
@@ -648,7 +688,7 @@
       }, i * 40);
     }
 
-    // 3. Большая надпись уровня
+    // Большая надпись уровня
     setTimeout(() => {
       const levelUpDiv = document.createElement('div');
       levelUpDiv.innerHTML = `
@@ -770,25 +810,20 @@
   function spawnFlies() {
     clearFlies();
     
-    // Запускаем интервальное появление птиц
     flySpawnInterval = setInterval(() => {
       if (paused) return;
       
       const currentFlyCount = getCurrentFlyCount();
-      if (currentFlyCount >= MAX_CONCURRENT_FLIES) return; // Не больше 5 птиц
+      if (currentFlyCount >= MAX_CONCURRENT_FLIES) return;
       
       const wordObj = getCurrentWord();
       const correctLettersNeeded = wordObj.correct.filter((letter, index) => !currentInserts[index]);
       
-      // Если слово еще не заполнено, продолжаем создавать птиц
       if (correctLettersNeeded.length > 0) {
-        // Создаем верных птиц с большей вероятностью
         if (Math.random() < CORRECT_FLY_RATIO && correctLettersNeeded.length > 0) {
           const neededLetter = correctLettersNeeded[Math.floor(Math.random() * correctLettersNeeded.length)];
           createFly(neededLetter, true);
-        } 
-        // Создаем неверных птиц
-        else {
+        } else {
           const randomCorrect = wordObj.correct[Math.floor(Math.random() * wordObj.correct.length)];
           const falseLetter = vowelPairs[randomCorrect] || 'а';
           createFly(falseLetter, false);
@@ -804,21 +839,18 @@
     const fly = document.createElement('div');
     fly.className = 'fly';
     
-    // Случайная начальная позиция справа за экраном
     const startY = Math.random() * (gameArea.clientHeight - 90);
-    const endY = startY + (Math.random() - 0.5) * 80; // Небольшое отклонение по Y
+    const endY = startY + (Math.random() - 0.5) * 80;
     
     fly.style.setProperty('--start-y', `${startY}px`);
     fly.style.setProperty('--end-y', `${endY}px`);
     
-    // Случайная скорость для разнообразия
-    const duration = 10 + Math.random() * 4; // От 10 до 14 секунд
+    const duration = 10 + Math.random() * 4;
     fly.style.animationDuration = `${duration}s`;
     
     fly.dataset.correct = isCorrect ? '1' : '0';
     fly.dataset.letter = letter;
     
-    // Создаем отдельный элемент для буквы
     const letterElement = document.createElement('div');
     letterElement.textContent = letter;
     letterElement.style.cssText = `
@@ -847,13 +879,11 @@
         try { soundMiss.play(); } catch(e) {}
       }
       
-      // Удаляем птицу при клике
       if(fly.parentNode) {
         fly.parentNode.removeChild(fly);
       }
     });
     
-    // Удаляем птицу после завершения анимации
     fly.addEventListener('animationend', () => {
       if(fly.parentNode) {
         fly.parentNode.removeChild(fly);
@@ -953,7 +983,6 @@
     renderLives();
     showMissMessage();
     
-    // Добавляем слово в список слов с промахами
     const wordObj = getCurrentWord();
     const originalIndex = words.findIndex(w => w.word === wordObj.word);
     failedWords.add(originalIndex);
@@ -996,9 +1025,6 @@
   function nextWord() {
     currentWordIndex++;
     if(currentWordIndex >= currentLevelWords.length) {
-      // Все слова текущего уровня пройдены
-      
-      // Добавляем слова с промахами обратно в следующий уровень
       const wordsForNextLevel = [...words];
       if (failedWords.size > 0) {
         const failedWordsArray = Array.from(failedWords);
@@ -1014,7 +1040,6 @@
       currentWordIndex = 0;
       currentLevelWords = [...wordsForNextLevel];
       
-      // Перемешиваем слова для нового уровня
       for (let i = currentLevelWords.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [currentLevelWords[i], currentLevelWords[j]] = [currentLevelWords[j], currentLevelWords[i]];
@@ -1022,10 +1047,8 @@
       
       renderLevel();
       
-      // ЗАМЕНА alert НА КРАСИВУЮ АНИМАЦИЮ
       showLevelUpAnimation();
       
-      // Ждем завершения анимации перед продолжением
       setTimeout(() => {
         currentInserts = [];
         updateWordDisplay();
@@ -1043,13 +1066,11 @@
     let dictText = "<div style='text-align: center; font-size: 20px; margin-bottom: 20px; font-weight: bold;'>Словарь изученных слов</div>";
     let hasWords = false;
     
-    // Собираем все изученные слова (из completedWords)
     const allLearnedWords = Array.from(completedWords).map(index => ({
       wordObj: words[index],
       isCompleted: true
     }));
     
-    // Добавляем слова с промахами (если есть)
     if (failedWords.size > 0) {
       Array.from(failedWords).forEach(index => {
         if (!completedWords.has(index)) {
@@ -1064,7 +1085,6 @@
     if (allLearnedWords.length > 0) {
       hasWords = true;
       
-      // Группируем слова по статусу
       const completedWordsList = allLearnedWords.filter(item => item.isCompleted);
       const failedWordsList = allLearnedWords.filter(item => !item.isCompleted);
       
@@ -1091,7 +1111,6 @@
       dictText += "<div style='color: #666; font-style: italic; text-align: center;'>Пока нет изученных слов</div>";
     }
     
-    // Создаем красивое модальное окно
     const dictModal = document.createElement('div');
     dictModal.style.cssText = `
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -1166,8 +1185,12 @@
     }
   }, {passive: false});
 
+  // Обработчики для обеих версий кнопок
   btnPause.addEventListener('click', togglePause);
   btnDict.addEventListener('click', showDictionary);
+  btnPauseMobile.addEventListener('click', togglePause);
+  btnDictMobile.addEventListener('click', showDictionary);
+  
   restartButton.addEventListener('click', resetGame);
   dictionaryButton.addEventListener('click', showDictionary);
 
@@ -1190,3 +1213,4 @@
 
 </body>
 </html>
+```
